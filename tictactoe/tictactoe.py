@@ -27,18 +27,16 @@ def player(board):
     return O if x_count > o_count else X
 
 
-board = [[EMPTY, EMPTY, EMPTY],
-         [EMPTY, X, O],
-         [EMPTY, EMPTY, EMPTY]]
-a = sum([1, 2, 3, 4])
-print(player(board))
-
-
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    raise NotImplementedError
+    possible_actions = set()
+    for i, row in enumerate(board):
+        for j, col in enumerate(row):
+            if col == EMPTY:
+                possible_actions.add((i, j))
+    return possible_actions
 
 
 def result(board, action):
@@ -52,7 +50,23 @@ def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
-    raise NotImplementedError
+    # checking horizontal winner
+    for row in board:
+        if len(set(row)) == 1 and row[0] is not EMPTY:
+            return row[0]
+
+    # checking vertical winner
+    for col in list(zip(*board)):
+        if len(set(col)) == 1 and col[0] is not EMPTY:
+            return col[0]
+
+    # checking diagonal winner
+    if len(set([board[0][0], board[1][1], board[2][2]])) == 1 and (board[1][1] is not EMPTY):
+        return board[1][1]
+    if len(set([board[0][2], board[1][1], board[2][0]])) == 1 and (board[1][1] is not EMPTY):
+        return board[1][1]
+
+    return None
 
 
 def terminal(board):
