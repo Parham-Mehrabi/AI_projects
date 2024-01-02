@@ -43,7 +43,8 @@ def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    raise NotImplementedError
+    board[action[0]][action[1]] = player(board)
+    return board
 
 
 def winner(board):
