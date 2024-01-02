@@ -50,7 +50,28 @@ def terminal(board):
     """
     Returns True if game is over, False otherwise.
     """
-    raise NotImplementedError
+
+    # check if the game is finished horizontally
+    for row in board:
+        if len(set(row)) == 1 and row[0] is not EMPTY:
+            return True
+
+    # check if the game is finished vertically
+        for col in list(zip(*board)):
+            if len(set(col)) == 1 and col[0] is not EMPTY:
+                return True
+
+    # check if the game is finished diagonally
+        if len(set([board[0][0], board[1][1], board[2][2]])) == 1 and (board[1][1] is not EMPTY):
+            return True
+        if len(set([board[0][2], board[1][1], board[2][0]])) == 1 and (board[1][1] is not EMPTY):
+            return True
+
+    # check if the game is finished by draw
+        if all(block is not EMPTY for row in board for block in row):
+            return True
+
+    return False
 
 
 def utility(board):
