@@ -24,6 +24,8 @@ def player(board):
     """
     x_count = sum(row.count(X) for row in board)
     o_count = sum(row.count(O) for row in board)
+    # if len(set(block for row in board for block in row)) == 1 and board[0][0] == EMPTY:
+    #     return X
     return O if x_count > o_count else X
 
 
@@ -43,8 +45,14 @@ def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
-    board[action[0]][action[1]] = player(board)
-    return board
+
+    if action not in actions(board):
+        raise ValueError('not a valid action')
+
+    new_board = [row.copy() for row in board]
+    new_board[action[0]][action[1]] = player(board)
+
+    return new_board
 
 
 def winner(board):
@@ -115,4 +123,36 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+    def min_value(board):
+        if terminal(board):
+            return utility(board)
+        min_utility = float('inf')
+        best_action = None
+        for action in actions(board):
+            new_board = result(board, action)
+            value = max_value(new_board)
+            if type(value) == list:
+                value = value[0]
+            if value < min_utility:
+                min_utility = value
+                best_action = action
+        return [min_utility, best_action]
+
+    def max_value(board):
+        if terminal(board):
+            return utility(board)
+        max_utility = float('-inf')
+        best_action = None
+        for action in actions(board):
+            new_board = result(board, action)
+            value = min_value(new_board)
+            if type(value) == list:
+                value = value[0]
+            if value > max_utility:
+                max_utility = value
+                best_action = action
+        return [max_utility, best_action]
+
+    if player(board) == X:
+        return max_value(board)[1]
+    return min_value(board)[1]
