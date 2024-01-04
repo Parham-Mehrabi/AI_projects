@@ -24,7 +24,7 @@ def load_data(directory):
             people[row["id"]] = {
                 "name": row["name"],
                 "birth": row["birth"],
-                "movies": set()
+                "movies": set(),
             }
             if row["name"].lower() not in names:
                 names[row["name"].lower()] = {row["id"]}
@@ -38,7 +38,7 @@ def load_data(directory):
             movies[row["id"]] = {
                 "title": row["title"],
                 "year": row["year"],
-                "stars": set()
+                "stars": set(),
             }
 
     # Load stars
@@ -70,7 +70,6 @@ def main():
         sys.exit("Person not found.")
 
     path = shortest_path(source, target)
-
     if path is None:
         print("Not connected.")
     else:
@@ -92,8 +91,54 @@ def shortest_path(source, target):
     If no possible path, returns None.
     """
 
-    # TODO
-    raise NotImplementedError
+    # initialize the first node
+    start = Node(state=source, parent=None, action=None)
+
+    # create the frontier for BFS
+    frontier = QueueFrontier()
+
+    # add the first node to frontier
+    frontier.add(start)
+
+    # track explored people
+    explored_people = set()
+
+    while True:
+        if frontier.empty():
+            # if there is no way to connect them return None
+            return None
+
+        # get item from frontier
+        node = frontier.remove()
+
+        # adding neighbors to frontier
+        for movie_id, person_id in neighbors_for_person(node.state):
+            # check if neighbor is already explored
+            if (
+                not frontier.contains_state(movie_id)
+                and person_id not in explored_people
+            ):
+                # create neighbor node
+                child = Node(parent=node, state=person_id, action=movie_id)
+
+                # add neighbor to frontier
+                frontier.add(child)
+
+        # add explored node to explored_people
+        explored_people.add(node.state)
+
+        # if the target actor/actress found:
+        if node.state == target:
+            path = []
+
+            while node.parent is not None:
+                path.append((node.action, node.state))
+                node = node.parent
+
+            # reverse the path since we start from the end
+            path.reverse()
+
+            return path
 
 
 def person_id_for_name(name):
