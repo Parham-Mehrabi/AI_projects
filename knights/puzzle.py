@@ -9,24 +9,40 @@ BKnave = Symbol("B is a Knave")
 CKnight = Symbol("C is a Knight")
 CKnave = Symbol("C is a Knave")
 
+
+game_rules = And(
+    Not(And(AKnight, AKnave)),
+    Or(AKnave, AKnight),
+    Not(And(BKnight, BKnave)),
+    Or(BKnave, BKnight),
+    Not(And(CKnight, CKnave)),
+    Or(CKnave, CKnight),
+)
+
 # Puzzle 0
 # A says "I am both a knight and a knave."
+
 knowledge0 = And(
-    # TODO
+    Or(AKnave, And(AKnight, AKnave)),
 )
 
 # Puzzle 1
 # A says "We are both knaves."
 # B says nothing.
 knowledge1 = And(
-    # TODO
+
+    Or(AKnave, And(AKnave, BKnave)),
+    Implication(AKnave, BKnight),
 )
 
 # Puzzle 2
 # A says "We are the same kind."
 # B says "We are of different kinds."
 knowledge2 = And(
-    # TODO
+
+    Biconditional(AKnight, Or(Biconditional(AKnight, BKnight))),
+    Biconditional(AKnave, Not(Biconditional(AKnight, BKnight))),
+    Implication(BKnight, AKnave),
 )
 
 # Puzzle 3
@@ -35,7 +51,10 @@ knowledge2 = And(
 # B says "C is a knave."
 # C says "A is a knight."
 knowledge3 = And(
-    # TODO
+
+    Biconditional(AKnight, Or(AKnight, AKnave)),
+    Biconditional(BKnight, AKnave),
+    Biconditional(BKnight, CKnave),
 )
 
 
@@ -45,10 +64,11 @@ def main():
         ("Puzzle 0", knowledge0),
         ("Puzzle 1", knowledge1),
         ("Puzzle 2", knowledge2),
-        ("Puzzle 3", knowledge3)
+        ("Puzzle 3", knowledge3),
     ]
     for puzzle, knowledge in puzzles:
         print(puzzle)
+        knowledge.add(game_rules)
         if len(knowledge.conjuncts) == 0:
             print("    Not yet implemented.")
         else:
