@@ -2,6 +2,7 @@ import os
 import random
 import re
 import sys
+from collections import Counter
 
 DAMPING = 0.85
 SAMPLES = 10000
@@ -17,10 +18,10 @@ def main():
     for page in sorted(ranks):
         print(f"  {page}: {ranks[page]:.4f}")
 
-    ranks = iterate_pagerank(corpus, DAMPING)
-    print(f"PageRank Results from Iteration")
-    for page in sorted(ranks):
-        print(f"  {page}: {ranks[page]:.4f}")
+    # ranks = iterate_pagerank(corpus, DAMPING)
+    # print(f"PageRank Results from Iteration")
+    # for page in sorted(ranks):
+    #     print(f"  {page}: {ranks[page]:.4f}")
 
 
 def crawl(directory):
@@ -85,8 +86,34 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
+    possibilities = dict()
+    page = random.choice(list(corpus.items()))[0]
+    visited = list()
+    for _ in range(n):
 
-    raise NotImplementedError
+        # list other pages chance to get visited based on current page
+        next_possible_pages = transition_model(
+            corpus=corpus, page=page, damping_factor=damping_factor
+        )
+
+        # extract each page and its chanced to get visited based on current page
+        pages, chance = zip(*next_possible_pages.items())
+
+        # choose next page based on their chance from current page
+        next_page = random.choices(pages, chance)[0]
+
+        # add next page to visited page
+        visited.append(next_page)
+
+        # move to next page
+        page = next_page
+
+    for page, visits in Counter(visited).items():
+
+        # calculate each page Value based on visits
+        possibilities[page] = visits / n
+
+    return possibilities
 
 
 def iterate_pagerank(corpus, damping_factor):
