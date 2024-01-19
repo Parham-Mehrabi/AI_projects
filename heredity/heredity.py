@@ -171,7 +171,6 @@ def joint_probability(people, one_gene, two_genes, have_trait):
             if gen_count == 1:
 
                 # inherit_chance = 'one gen from mother and no gen from father + one gen from father and no gen from mother'
-
                 inherit_chance = (chance_from_mother * (1 - chance_from_father)) + \
                                  (chance_from_father * (1 - chance_from_mother))
             if gen_count == 2:
@@ -203,14 +202,14 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     for person in probabilities:
 
         if person in one_gene:
-            probabilities[person]['gene'][1] = p
+            probabilities[person]['gene'][1] += p
         elif person in two_genes:
-            probabilities[person]['gene'][2] = p
+            probabilities[person]['gene'][2] += p
         else:
-            probabilities[person]['gene'][0] = p
+            probabilities[person]['gene'][0] += p
 
         if person in have_trait:
-            probabilities[person]['trait'][True] = p
+            probabilities[person]['trait'][True] += p
         else:
             probabilities[person]['trait'][False] = p
 
