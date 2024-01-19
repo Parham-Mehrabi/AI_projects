@@ -3,42 +3,22 @@ import itertools
 import sys
 
 PROBS = {
-
     # Unconditional probabilities for having gene
-    "gene": {
-        2: 0.01,
-        1: 0.03,
-        0: 0.96
-    },
-
+    "gene": {2: 0.01, 1: 0.03, 0: 0.96},
     "trait": {
-
         # Probability of trait given two copies of gene
-        2: {
-            True: 0.65,
-            False: 0.35
-        },
-
+        2: {True: 0.65, False: 0.35},
         # Probability of trait given one copy of gene
-        1: {
-            True: 0.56,
-            False: 0.44
-        },
-
+        1: {True: 0.56, False: 0.44},
         # Probability of trait given no gene
-        0: {
-            True: 0.01,
-            False: 0.99
-        }
+        0: {True: 0.01, False: 0.99},
     },
-
     # Mutation probability
-    "mutation": 0.01
+    "mutation": 0.01,
 }
 
 
 def main():
-
     # Check for proper usage
     if len(sys.argv) != 2:
         sys.exit("Usage: python heredity.py data.csv")
@@ -46,28 +26,19 @@ def main():
 
     # Keep track of gene and trait probabilities for each person
     probabilities = {
-        person: {
-            "gene": {
-                2: 0,
-                1: 0,
-                0: 0
-            },
-            "trait": {
-                True: 0,
-                False: 0
-            }
-        }
+        person: {"gene": {2: 0, 1: 0, 0: 0}, "trait": {True: 0, False: 0}}
         for person in people
     }
 
     # Loop over all sets of people who might have the trait
     names = set(people)
     for have_trait in powerset(names):
-
         # Check if current set of people violates known information
         fails_evidence = any(
-            (people[person]["trait"] is not None and
-             people[person]["trait"] != (person in have_trait))
+            (
+                people[person]["trait"] is not None 
+                and people[person]["trait"] != (person in have_trait)
+            )
             for person in names
         )
         if fails_evidence:
@@ -76,7 +47,6 @@ def main():
         # Loop over all sets of people who might have the gene
         for one_gene in powerset(names):
             for two_genes in powerset(names - one_gene):
-
                 # Update probabilities with new joint probability
                 p = joint_probability(people, one_gene, two_genes, have_trait)
                 update(probabilities, one_gene, two_genes, have_trait, p)
@@ -110,8 +80,13 @@ def load_data(filename):
                 "name": name,
                 "mother": row["mother"] or None,
                 "father": row["father"] or None,
-                "trait": (True if row["trait"] == "1" else
-                          False if row["trait"] == "0" else None)
+                "trait": (
+                    True
+                    if row["trait"] == "1" 
+                    else False 
+                    if row["trait"] == "0" 
+                    else None
+                ),
             }
     return data
 
@@ -122,7 +97,8 @@ def powerset(s):
     """
     s = list(s)
     return [
-        set(s) for s in itertools.chain.from_iterable(
+        set(s)
+        for s in itertools.chain.from_iterable(
             itertools.combinations(s, r) for r in range(len(s) + 1)
         )
     ]
@@ -142,34 +118,45 @@ def joint_probability(people, one_gene, two_genes, have_trait):
 
     probabilities = []
     for person in people.values():
-        name, mother, father = person['name'], person['mother'], person['father']
+        name, mother, father = person["name"], person["mother"], person["father"]
         gen_count = 2 if name in two_genes else 1 if name in one_gene else 0
         trait = True if name in have_trait else False
-        trait_chance = PROBS['trait'][gen_count][trait]
+        trait_chance = PROBS["trait"][gen_count][trait]
 
         if not mother and not father:
-            chance_it_has_gen_count = PROBS['gene'][gen_count]
+            chance_it_has_gen_count = PROBS["gene"][gen_count]
             probability = chance_it_has_gen_count * trait_chance
 
             probabilities.append(probability)
 
         if mother and father:
             chance_from_mother = (
-                1 - PROBS['mutation']) if mother in two_genes else 0.5 if mother in one_gene else PROBS['mutation']
+                (1 - PROBS["mutation"]) 
+                if mother in two_genes 
+                else 0.5 
+                if mother in one_gene 
+                else PROBS["mutation"]
+            )
 
             chance_from_father = (
-                1 - PROBS['mutation']) if father in two_genes else 0.5 if father in one_gene else PROBS['mutation']
+                (1 - PROBS["mutation"]) 
+                if father in two_genes 
+                else 0.5 
+                if father in one_gene 
+                else PROBS["mutation"]
+            )
 
             if gen_count == 0:
-                # inherit_chance = 'no gen from mother nor father'
-                inherit_chance = ((1 - chance_from_mother) *
-                                  (1 - chance_from_father))
+                # inherit_chance = "no gen from mother nor father"
+                inherit_chance = (1 - chance_from_mother) * (1 - chance_from_father)
+
             if gen_count == 1:
-                # inherit_chance = 'one gen from mother and no gen from father + one gen from father and no gen from mother'
-                inherit_chance = (chance_from_mother * (1 - chance_from_father)) + \
-                                 (chance_from_father * (1 - chance_from_mother))
+                # inherit_chance = "one gen from mother and no gen from father + one gen from father and no gen from mother"
+                inherit_chance = (chance_from_mother * (1 - chance_from_father)) + (
+                    chance_from_father * (1 - chance_from_mother)
+                )
             if gen_count == 2:
-                # inherit_chance = 'one gen from father and one gen from mother'
+                # inherit_chance = "one gen from father and one gen from mother"
                 inherit_chance = chance_from_father * chance_from_mother
 
             probabilities.append(inherit_chance)
@@ -191,18 +178,17 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     """
 
     for person in probabilities:
-
         if person in one_gene:
-            probabilities[person]['gene'][1] += p
+            probabilities[person]["gene"][1] += p
         elif person in two_genes:
-            probabilities[person]['gene'][2] += p
+            probabilities[person]["gene"][2] += p
         else:
-            probabilities[person]['gene'][0] += p
+            probabilities[person]["gene"][0] += p
 
         if person in have_trait:
-            probabilities[person]['trait'][True] += p
+            probabilities[person]["trait"][True] += p
         else:
-            probabilities[person]['trait'][False] += p
+            probabilities[person]["trait"][False] += p
 
 
 def normalize(probabilities):
@@ -212,11 +198,10 @@ def normalize(probabilities):
     """
 
     for person, distributions in probabilities.items():
-
         for distro, value in distributions.items():
             sum_values = sum(value.values())
             for k, v in value.items():
-                probabilities[person][distro][k] = v/sum_values
+                probabilities[person][distro][k] = v / sum_values
 
 
 if __name__ == "__main__":
