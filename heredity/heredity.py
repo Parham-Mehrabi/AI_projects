@@ -139,7 +139,57 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    probabilities = []
+    for person in people.values():
+        name, mother, father, trait = person['name'], person['mother'], person['father'], person['trait']
+        gen_count = 2 if name in two_genes else 1 if name in one_gene else 0
+
+        if not mother and not father:
+            chance_it_has_gen_count = PROBS['gene'][gen_count]
+
+            if name in have_trait:
+                probability = chance_it_has_gen_count * \
+                    PROBS['trait'][gen_count][True]
+                probabilities.append(probability)
+            elif name not in have_trait:
+                probability = chance_it_has_gen_count * \
+                    PROBS['trait'][gen_count][False]
+                probabilities.append(probability)
+
+        if mother and father:
+            chance_from_mother = (
+                1 - PROBS['mutation']) if mother in two_genes else 0.5 if mother in one_gene else PROBS['mutation']
+
+            chance_from_father = (
+                1 - PROBS['mutation']) if father in two_genes else 0.5 if mother in one_gene else PROBS['mutation']
+
+            if gen_count == 0:
+                # inherit_chance = 'no gen from mother nor father'
+                inherit_chance = (1 - chance_from_mother *
+                                  (1 - chance_from_father))
+
+            if gen_count == 1:
+
+                # inherit_chance = 'one gen from mother and no gen from father + one gen from father and no gen from mother'
+
+                inherit_chance = (chance_from_mother * (1 - chance_from_father)) + \
+                                 (chance_from_father * (1 - chance_from_mother))
+            if gen_count == 2:
+                # inherit_chance = 'one gen from father and one gen from mother'
+                inherit_chance = chance_from_father * chance_from_mother
+            probability = inherit_chance
+
+            if trait is None:
+                _trait = PROBS['trait'][gen_count][bool(name in have_trait)]
+                probability = _trait * inherit_chance
+                probabilities.append(probability)
+            if trait is not None:
+                probability = inherit_chance * PROBS['trait'][gen_count][trait]
+    result = 1
+    for p in probabilities:
+        result *= p
+
+    return result
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
@@ -149,7 +199,20 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
-    raise NotImplementedError
+
+    for person in probabilities:
+
+        if person in one_gene:
+            probabilities[person]['gene'][1] = p
+        elif person in two_genes:
+            probabilities[person]['gene'][2] = p
+        else:
+            probabilities[person]['gene'][0] = p
+
+        if person in have_trait:
+            probabilities[person]['trait'][True] = p
+        else:
+            probabilities[person]['trait'][False] = p
 
 
 def normalize(probabilities):
@@ -157,7 +220,13 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
-    raise NotImplementedError
+
+    for person, distributions in probabilities.items():
+
+        for distro, value in distributions.items():
+            sum_values = sum(value.values())
+            for k, v in value.items():
+                probabilities[person][distro][k] = v/sum_values
 
 
 if __name__ == "__main__":
