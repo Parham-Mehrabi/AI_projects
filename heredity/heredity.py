@@ -36,7 +36,7 @@ def main():
         # Check if current set of people violates known information
         fails_evidence = any(
             (
-                people[person]["trait"] is not None 
+                people[person]["trait"] is not None
                 and people[person]["trait"] != (person in have_trait)
             )
             for person in names
@@ -56,12 +56,12 @@ def main():
 
     # Print results
     for person in people:
-        print(f"{person}:")
+        print(f"{person}: ")
         for field in probabilities[person]:
-            print(f"  {field.capitalize()}:")
+            print(f"  {field.capitalize()}: ")
             for value in probabilities[person][field]:
                 p = probabilities[person][field][value]
-                print(f"    {value}: {p:.4f}")
+                print(f"    {value}: {p: .4f}")
 
 
 def load_data(filename):
@@ -82,9 +82,9 @@ def load_data(filename):
                 "father": row["father"] or None,
                 "trait": (
                     True
-                    if row["trait"] == "1" 
-                    else False 
-                    if row["trait"] == "0" 
+                    if row["trait"] == "1"
+                    else False
+                    if row["trait"] == "0"
                     else None
                 ),
             }
@@ -131,24 +131,25 @@ def joint_probability(people, one_gene, two_genes, have_trait):
 
         if mother and father:
             chance_from_mother = (
-                (1 - PROBS["mutation"]) 
-                if mother in two_genes 
-                else 0.5 
-                if mother in one_gene 
+                (1 - PROBS["mutation"])
+                if mother in two_genes
+                else 0.5
+                if mother in one_gene
                 else PROBS["mutation"]
             )
 
             chance_from_father = (
-                (1 - PROBS["mutation"]) 
-                if father in two_genes 
-                else 0.5 
-                if father in one_gene 
+                (1 - PROBS["mutation"])
+                if father in two_genes
+                else 0.5
+                if father in one_gene
                 else PROBS["mutation"]
             )
 
             if gen_count == 0:
                 # inherit_chance = "no gen from mother nor father"
-                inherit_chance = (1 - chance_from_mother) * (1 - chance_from_father)
+                inherit_chance = (1 - chance_from_mother) * \
+                    (1 - chance_from_father)
 
             if gen_count == 1:
                 # inherit_chance = "one gen from mother and no gen from father + one gen from father and no gen from mother"
