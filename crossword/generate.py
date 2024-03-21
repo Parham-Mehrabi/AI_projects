@@ -142,19 +142,17 @@ class CrosswordCreator():
         if arcs is None:
             arcs = []
             for x in self.domains.keys():
-                for y in self.domains.keys():
-                    if x == y:
-                        continue
-                    arcs.append((x, y))
+                for n in self.crossword.neighbors(x):
+                    if self.crossword.overlaps[x, n] is not None:
+                        arcs.append((x, n))
 
         while len(arcs) != 0:
             x, y = arcs.pop()
             if self.revise(x, y):
                 if len(self.domains[x]) == 0:
                     return False
-                neighbors = self.crossword.neighbors(x).copy()
-                neighbors.remove(y)
-                for n in neighbors:
+                neighbors = self.crossword.neighbors(x)
+                for n in neighbors - {y}:
                     arcs.append((x, n))
         return True
 
@@ -209,7 +207,9 @@ class CrosswordCreator():
         def sort_domain(value):
             n = 0
             for neighbor in unassigned_variable_neighbors:
-                pass
+                if value in self.domains[neighbor]:
+                    n += 1
+            return n
         raw_domain = list(self.domains[var])
         ordered_domain = sorted(raw_domain, key=sort_domain)
 
@@ -223,12 +223,14 @@ class CrosswordCreator():
         degree. If there is a tie, any of the tied variables are acceptable
         return values.
         """
-        # TODO: fix this function
+        variables = []
         for variable in self.domains.keys():
+            self.order_domain_values(variable, assignment=assignment)
             if variable not in assignment.keys():
-                return variable
-            elif assignment[variable] is None:
-                return variable
+                variables.append(variable)
+
+        variables = sorted(variables, key=lambda x: len(self.domains[x]))
+        return variables[0]
 
     def backtrack(self, assignment):
         """
