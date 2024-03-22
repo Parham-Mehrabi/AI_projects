@@ -1,7 +1,6 @@
 import sys
 
-# from crossword import Variable, Crossword // TODO fix this
-from crossword import *
+from crossword import Variable, Crossword
 
 
 class CrosswordCreator():
@@ -153,7 +152,7 @@ class CrosswordCreator():
                     return False
                 neighbors = self.crossword.neighbors(x)
                 for n in neighbors - {y}:
-                    arcs.append((x, n))
+                    arcs.append((n, x))
         return True
 
     def assignment_complete(self, assignment):
@@ -205,14 +204,19 @@ class CrosswordCreator():
             n for n in self.crossword.neighbors(var) if n not in assignment.keys()]
 
         def sort_domain(value):
-            n = 0
-            for neighbor in unassigned_variable_neighbors:
-                if value in self.domains[neighbor]:
-                    n += 1
-            return n
+            eliminated = 0
+            for n in unassigned_variable_neighbors:
+
+                xoverlap, yoverlap = self.crossword.overlaps[var, n]
+
+                for neighbor_word in self.domains[n]:
+                    if value[xoverlap] != neighbor_word[yoverlap]:
+                        eliminated += 1
+
+            return eliminated
+
         raw_domain = list(self.domains[var])
         ordered_domain = sorted(raw_domain, key=sort_domain)
-
         return ordered_domain
 
     def select_unassigned_variable(self, assignment):
